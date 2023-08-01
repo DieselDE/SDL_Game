@@ -1,117 +1,162 @@
 #include <iostream>
 #include <SDL.h>
 
-using namespace std;
+// Screen dimension constants
+const int SCREEN_WIDTH = 960;
+const int SCREEN_HEIGHT = 640;
 
-struct InitResult {
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-};
+// The window we'll be rendering to
+SDL_Window* gWindow = NULL;
 
-InitResult init(){
-    InitResult result;
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-        result.window = nullptr;
-        result.renderer = nullptr;
-        return result;
-    }
+// The surface contained by the window
+SDL_Surface* gScreenSurface = NULL;
 
-    SDL_Window *window = SDL_CreateWindow("Hello SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1200, 900, 0);
-    if (window == nullptr) {
-        std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        result.window = nullptr;
-        result.renderer = nullptr;
-        return result;
-    }
+// The images
+SDL_Surface* gImage1 = NULL;
+SDL_Surface* gImage2 = NULL;
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == nullptr) {
-        std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        result.window = nullptr;
-        result.renderer = nullptr;
-        return result;
-    }
+// Current displayed image
+SDL_Surface* gCurrentImage = NULL;
 
-    result.window = window;
-    result.renderer = renderer;
-    return result;
-}
+// Time delay in milliseconds
+const int KEY_DELAY = 100;
 
-void close(SDL_Window *window, SDL_Renderer *renderer){
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+// Last time a key action occurred
+Uint32 lastKeyPressTime = 0;
+
+// Free resources and shut down SDL
+void close(){
+    // Deallocate surfaces
+    SDL_FreeSurface(gImage1);
+    SDL_FreeSurface(gImage2);
+
+    // Destroy window
+    SDL_DestroyWindow(gWindow);
+
+    // Quit SDL subsystems
     SDL_Quit();
 }
 
-void renderTexture(SDL_Texture* texture, SDL_Renderer* renderer, int x, int y) {
-    SDL_Rect dstRect = { x, y, 0, 0 };
-    SDL_QueryTexture(texture, NULL, NULL, &dstRect.w, &dstRect.h);
-    SDL_RenderCopy(renderer, texture, NULL, &dstRect);
+// Switches the displayed image
+void switchImage(){
+    if (gCurrentImage == gImage1)
+        gCurrentImage = gImage2;
+    else
+        gCurrentImage = gImage1;
 }
 
-int main(int argc, char** argv){
-    int r = 0, g = 0, b = 0;
-    bool isRunning = true;
-    SDL_Event event;
+int main(int argc, char* args[]){
 
-    InitResult result = init();
-    if (result.window == nullptr || result.renderer == nullptr) {
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) != 0){
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+
+    // Create window
+    gWindow = SDL_CreateWindow("Image Switcher", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    
+    if (gWindow == NULL){
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+
+    // Switch to fullscreen mode
+    SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN);
+
+    // Get window surface
+    gScreenSurface = SDL_GetWindowSurface(gWindow);
+
+    SDL_Renderer *grenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
+
+    if (!grenderer) {
+        printf("Renderer creation failed: %s\n", SDL_GetError());
         return 1;
     }
-    SDL_Surface* imageSurface = SDL_LoadBMP("image1.bmp");
-    if(imageSurface == nullptr){
-        cout << "SDL Error:" << SDL_GetError() << endl;
-        close(result.window, result.renderer);
-        return 1;
-    }
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(result.renderer, imageSurface);
-    if(texture == nullptr){
-        cout << "SDL Error:" << SDL_GetError() << endl;
-        close(result.window, result.renderer);
-        return 1;
-    }
-    SDL_FreeSurface(imageSurface);
 
-    renderTexture(texture, result.renderer, 600, 450);
+    // Load images
+    gImage1 = SDL_LoadBMP("image1.bmp");
+    if (gImage1 == NULL){
+        printf("Unable to load image1.bmp! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
 
-    while (isRunning){
-        while (SDL_PollEvent(&event)){
-            switch (event.type){
-                case SDL_QUIT:
-                    isRunning = false;
-                    break;
-                case SDL_KEYDOWN:
-                    if (event.key.keysym.sym == SDLK_w){
-                        r = 255;
+    gImage2 = SDL_LoadBMP("image2.bmp");
+    if (gImage2 == NULL){
+        printf("Unable to load image2.bmp! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+
+    // Set the initial image to display
+    gCurrentImage = gImage1;
+
+    // Event handler
+    SDL_Event e;
+
+    // Loop tag
+    bool quit = false;
+
+    // While application is running
+    while (!quit){
+        // Handle events on queue
+        while (SDL_PollEvent(&e) != 0){
+            // User requests quit
+            if (e.type == SDL_QUIT){
+                quit = true;
+            }
+            // Handle key press events
+            else if (e.type == SDL_KEYDOWN){
+                // Get the current time
+                Uint32 currentTime = SDL_GetTicks();
+
+                // Check if enough time has passed since the last key action
+                if (currentTime - lastKeyPressTime >= KEY_DELAY){
+                    // Check if the 's' key was pressed
+                    if (e.key.keysym.sym == SDLK_s){
+                        switchImage();
                     }
-                    if (event.key.keysym.sym == SDLK_a){
-                        g = 255;
+
+                    else if(e.key.keysym.sym == SDLK_F4){
+
+                        SDL_SetRenderDrawColor(grenderer, 197, 22, 5, 255);   
+                        SDL_RenderClear(grenderer);
+                        SDL_SetRenderDrawColor(grenderer, 145, 200, 228, 255);
+
+                        SDL_Rect foregroundRect1 = {470, 100, 560, 200}, 
+                                 foregroundRect2 = {470, 580, 260, 200},
+                                 foregroundRect3 = {0, 0, 200, 200},
+                                 foregroundRect4 = {0, 560, 200, 300};
+
+                        SDL_RenderFillRect(grenderer, &foregroundRect1);
+                        SDL_RenderFillRect(grenderer, &foregroundRect2);
+
+                        SDL_SetRenderDrawColor(grenderer, 0, 0, 0, 200);
+
+                        SDL_RenderFillRect(grenderer, &foregroundRect3);
+                        SDL_RenderFillRect(grenderer, &foregroundRect4);
+
+                        SDL_RenderPresent(grenderer);
                     }
-                    if (event.key.keysym.sym == SDLK_s){
-                        b = 255;
+
+                    else if(e.key.keysym.sym == SDLK_ESCAPE){
+                        quit = true;
                     }
-                    if (event.key.keysym.sym == SDLK_d){
-                        r = 0;
-                        g = 0;
-                        b = 0;
-                    }
-                    if (event.key.keysym.sym == SDLK_ESCAPE){
-                        isRunning = false;
-                    }
-                    break;
-                default:
-                    break;
+
+                    // Update the last key press time
+                    lastKeyPressTime = currentTime;
+                }
             }
         }
-        SDL_SetRenderDrawColor(result.renderer, r, g, b, 255);
-        SDL_RenderClear(result.renderer);
-        SDL_RenderPresent(result.renderer);
+
+        // Apply the current image to the screen
+        SDL_BlitSurface(gCurrentImage, NULL, gScreenSurface, NULL);
+
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
     }
 
-    close(result.window, result.renderer);
+    // Free resources and close SDL
+    close();
+
     return 0;
 }
