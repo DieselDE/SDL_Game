@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SDL.h>
+#include "Character.hpp"
 
 // Screen dimension constants
 const int SCREEN_WIDTH = 960;
@@ -46,6 +47,10 @@ void switchImage(){
 }
 
 int main(int argc, char* args[]){
+
+    Character Player;
+
+    Player.create(&Player);
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
