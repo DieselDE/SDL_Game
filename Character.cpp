@@ -1,50 +1,49 @@
 #include <iostream>
 
-#include "Character.hpp"
-#include "qmaths.hpp"
+using std::cout, std::endl;
 
-using namespace std;
+class Character{
+    public:
 
-Character Character::create(Character* Player) {
-    Player->HP = 100;
-    Player->ATK = 30;
-    Player->DEF = 20;
+    int HP;
+    int ATK;
+    int DEF;
 
-    return *Player;
-}
+    Character create(Character* Player) {
+        Player->HP = 100;
+        Player->ATK = 30;
+        Player->DEF = 20;
 
-Character Character::lvl_up(Character* Player) {
-    Player->HP += 5;
-    Player->ATK += 3;
-    Player->DEF += 2;
+        return *Player;
+    }
+    Character lvl_up(Character* Player) {
+        Player->HP += 5;
+        Player->ATK += 3;
+        Player->DEF += 2;
 
-    return *Player;
-}
+        return *Player;
+    }
+};
 
-Enemy Enemy::create_Goblin(Enemy* Goblin, int lvl) {
-    Goblin->HP = 30 + enemylvld("HP", lvl);
-    Goblin->ATK = 10 + enemylvld("ATK", lvl);
-    Goblin->DEF = 10 + enemylvld("DEF", lvl);
+class Enemy{
+    public:
 
-    return *Goblin;
-}
+    int HP;
+    int ATK;
+    int DEF;
 
-Enemy Enemy::create_Zombie(Enemy* Zombie, int lvl) {
-    Zombie->HP = 40 + enemylvld("HP", lvl);
-    Zombie->ATK = 7 + enemylvld("HP", lvl);
-    Zombie->DEF = 20 + enemylvld("HP", lvl);
+    Enemy create_Goblin(Enemy* Goblin, int lvl) {
+        Goblin->HP = 30 + (5 * lvl);
+        Goblin->ATK = 10 + (3 * lvl);
+        Goblin->DEF = 10 + (2 * lvl);
 
-    return *Zombie;
-}
+        return *Goblin;
+    }
+    Enemy create_Zombie(Enemy* Zombie, int lvl) {
+        Zombie->HP = 40 + (5 * lvl);
+        Zombie->ATK = 7 + (3 * lvl);
+        Zombie->DEF = 20 + (2 * lvl);
 
-int main(){
-    Character Player;
-    Player.create(&Player);
-    Player.lvl_up(&Player);
-
-    Enemy Goblin;
-    Goblin.create_Goblin(&Goblin, 1);
-
-    cout << Player.HP << endl;
-    cout << Goblin.HP << endl;
-}
+        return *Zombie;
+    }
+};

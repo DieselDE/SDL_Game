@@ -1,6 +1,9 @@
 #include <iostream>
 #include <SDL.h>
-#include "Character.hpp"
+
+#include "Character.cpp"
+
+using std::cout;
 
 // Screen dimension constants
 const int SCREEN_WIDTH = 960;
@@ -49,8 +52,8 @@ void switchImage(){
 int main(int argc, char* args[]){
 
     Character Player;
-
-    Player.create(&Player);
+    Player = Player.create(&Player);
+    cout << Player.HP;
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
@@ -145,6 +148,15 @@ int main(int argc, char* args[]){
 
                     else if(e.key.keysym.sym == SDLK_ESCAPE){
                         quit = true;
+                    }
+
+                    else if(e.key.keysym.sym == SDLK_F5 && Player.HP == 100){
+
+                        SDL_SetRenderDrawColor(grenderer, 100, 100 , 100, 255);
+                        SDL_Rect testRect = {200, 200, 200, 200};
+                        SDL_RenderFillRect(grenderer, &testRect);
+
+                        SDL_RenderPresent(grenderer);
                     }
 
                     // Update the last key press time
