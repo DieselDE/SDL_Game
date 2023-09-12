@@ -42,15 +42,14 @@ void close(){
 }
 
 // Switches the displayed image
-void switchImage(){
-    if (gCurrentImage == gImage1)
-        gCurrentImage = gImage2;
-    else
-        gCurrentImage = gImage1;
+void switchImage(SDL_Surface* gImage){
+    // changes current image
+    gCurrentImage = gImage;
 }
 
 int main(int argc, char* args[]){
 
+    // test out the Character traits
     Character Player;
     Player = Player.create(&Player);
     cout << Player.HP;
@@ -83,17 +82,14 @@ int main(int argc, char* args[]){
     }
 
     // Load images
-    gImage1 = SDL_LoadBMP("image1.bmp");
+    gImage1 = SDL_LoadBMP("Battle_Attack.bmp");
     if (gImage1 == NULL){
-        printf("Unable to load image1.bmp! SDL_Error: %s\n", SDL_GetError());
+        printf("Unable to load Battle_Attack.bmp! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
 
-    gImage2 = SDL_LoadBMP("image2.bmp");
-    if (gImage2 == NULL){
-        printf("Unable to load image2.bmp! SDL_Error: %s\n", SDL_GetError());
-        return false;
-    }
+    // Set int to right image
+    int BattleImageState = 0;
 
     // Set the initial image to display
     gCurrentImage = gImage1;
@@ -119,11 +115,76 @@ int main(int argc, char* args[]){
 
                 // Check if enough time has passed since the last key action
                 if (currentTime - lastKeyPressTime >= KEY_DELAY){
-                    // Check if the 's' key was pressed
-                    if (e.key.keysym.sym == SDLK_s){
-                        switchImage();
+                    
+                    if (e.key.keysym.sym == SDLK_w){
+                        // check which image its on and change it, if necesary
+                        switch(BattleImageState){
+                            case 2: gImage1 = SDL_LoadBMP("Battle_Attack.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 0;
+                                    break;
+
+                            case 3: gImage1 = SDL_LoadBMP("Battle_Defend.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 1;
+                                    break;
+
+                            default: break;
+                        }
                     }
 
+                    else if (e.key.keysym.sym == SDLK_a){
+                        // check which image its on and change it, if necesary
+                        switch(BattleImageState){
+                            case 1: gImage1 = SDL_LoadBMP("Battle_Attack.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 0;
+                                    break;
+
+                            case 3: gImage1 = SDL_LoadBMP("Battle_Item.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 2;
+                                    break;
+
+                            default: break;
+                        }
+                    }
+
+                    else if (e.key.keysym.sym == SDLK_s){
+                        // check which image its on and change it, if necesary
+                        switch(BattleImageState){
+                            case 0: gImage1 = SDL_LoadBMP("Battle_Item.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 2;
+                                    break;
+
+                            case 1: gImage1 = SDL_LoadBMP("Battle_Flee.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 3;
+                                    break;
+
+                            default: break;
+                        }
+                    }
+
+                    else if(e.key.keysym.sym == SDLK_d){
+                        // check which image its on and change it, if necesary
+                        switch(BattleImageState){
+                            case 0: gImage1 = SDL_LoadBMP("Battle_Defend.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 1;
+                                    break;
+
+                            case 2: gImage1 = SDL_LoadBMP("Battle_Flee.bmp");
+                                    switchImage(gImage1);
+                                    BattleImageState = 3;
+                                    break;
+
+                            default: break;
+                        }
+                    }
+
+                    // Dont change this function! Ever!!!
                     else if(e.key.keysym.sym == SDLK_F4){
 
                         SDL_SetRenderDrawColor(grenderer, 197, 22, 5, 255);   
