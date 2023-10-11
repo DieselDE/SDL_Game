@@ -1,9 +1,9 @@
 #include <iostream>
 #include <SDL.h>
 
-#include "Character.cpp"
+#include "Character.h"
 
-using std::cout;
+using std::cout, std::endl;
 
 // Screen dimension constants
 const int SCREEN_WIDTH = 960;
