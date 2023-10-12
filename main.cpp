@@ -21,6 +21,7 @@ SDL_Surface* gImage2 = NULL;
 
 // Current displayed image
 SDL_Surface* gCurrentImage = NULL;
+SDL_Surface* gForegroundImage = NULL;
 
 // Time delay in milliseconds
 const int KEY_DELAY = 100;
@@ -45,6 +46,16 @@ void close(){
 void switchImage(SDL_Surface* gImage){
     // changes current image
     gCurrentImage = gImage;
+}
+
+void projectBattlePlayer(SDL_Surface* gPlayer){
+    // adds Player on top of menu ? maybe ?
+    gForegroundImage = gPlayer;
+}
+
+void projectBattleEnemy(SDL_Surface* gEnemy){
+    // adds Enemy on top of menu ? maybe ?
+    gForegroundImage = gEnemy;
 }
 
 int main(int argc, char* args[]){
@@ -207,10 +218,6 @@ int main(int argc, char* args[]){
                         SDL_RenderPresent(grenderer);
                     }
 
-                    else if(e.key.keysym.sym == SDLK_ESCAPE){
-                        quit = true;
-                    }
-
                     else if(e.key.keysym.sym == SDLK_F5 && Player.HP == 100){
 
                         SDL_SetRenderDrawColor(grenderer, 100, 100 , 100, 255);
@@ -218,6 +225,10 @@ int main(int argc, char* args[]){
                         SDL_RenderFillRect(grenderer, &testRect);
 
                         SDL_RenderPresent(grenderer);
+                    }
+
+                    else if(e.key.keysym.sym == SDLK_ESCAPE){
+                        quit = true;
                     }
 
                     // Update the last key press time
@@ -228,6 +239,7 @@ int main(int argc, char* args[]){
 
         // Apply the current image to the screen
         SDL_BlitSurface(gCurrentImage, NULL, gScreenSurface, NULL);
+        SDL_BlitSurface(gForegroundImage, NULL, gScreenSurface, NULL);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
